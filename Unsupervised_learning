@@ -1,0 +1,212 @@
+
+Student: Jesús Burgos Baena
+Wine-Analysis
+winequality-red.csv
+
+
+!wget https://raw.githubusercontent.com/zygmuntz/wine-quality/master/winequality/winequality-red.csv
+
+First steps is observe the data, see is some value that is possoble to delete, the different values, in this case we are going to use the min-max, and classical standarizard
+
+import pandas as panda_reader
+import seaborn as sns
+import plotly.express as px
+
+df_red = panda_reader.read_csv("winequality-red.csv", sep =";")
+df_red
+
+
+
+3. Preprocessing
+Normalization (MinMax, Standard, ....)
+Feature Selection
+Do not use quality to build the models
+Use quality only in the analysis/interpretation step
+It was developed different values, but the important is the general values
+
+
+import numpy as np
+import matplotlib.pyplot as plt 
+import statistics as st
+from sklearn import preprocessing
+from sklearn.decomposition import PCA
+
+exclude = ['quality']
+df_red = df_red.loc[:, df_red.columns.difference(exclude)]
+count_data=df_red.count()
+mean_data=df_red.mean()
+std_data=df_red.std()
+min_data=df_red.min()
+m25_data=df_red.mean()
+m50_data=df_red.mean()
+m75_data=df_red.mean()
+max_data=df_red.max()
+
+from sklearn import preprocessing 
+scaler = preprocessing.StandardScaler()
+min_scaler=preprocessing.MinMaxScaler()
+datas_general = scaler.fit_transform(df_red)
+datas_general_min = min_scaler.fit_transform(df_red)
+'''datas_mean = scaler.fit_transform(df_red.mean())
+datas_mean_min = min_scaler.fit_transform(df_red.mean())
+datas_std = scaler.fit_transform(df_red.std())
+datas_std_min = min_scaler.fit_transform(df_red.std())
+datas_min = scaler.fit_transform(df_red.min())
+datas_min_min = min_scaler.fit_transform(df_red.min())
+datas_m25 = scaler.fit_transform(df_red)
+datas_m25_min = min_scaler.fit_transform(df_red)
+datas_m50 = scaler.fit_transform(df_red)
+datas_m50_min = min_scaler.fit_transform(df_red)
+datas_m75= scaler.fit_transform(df_red)
+datas_m75_min= min_scaler.fit_transform(df_red)
+datas_max = scaler.fit_transform(df_red.max())
+datas_max_min = min_scaler.fit_transform(df_red.max())'''
+
+print("This is the value of the data general:\n",datas_general,"\n")
+print("This is the value of the data general with minimun:\n",datas_general_min)
+
+
+It will be observed that the value of standrar are very different among them, for this reasonm is a good idea use a min_max scaler to do the normalziartion
+Next step is calculate the PCA, to get different information will be use 2 and 3 dimension and compare the values
+
+4. Dimensionality
+Visualization
+
+matrix = df_red.corr()
+fig, ax = plt.subplots(figsize=(10,10))
+sns.heatmap(matrix, linewidths=.5, ax=ax, cmap="Oranges")
+plt.show()
+
+
+
+6. Clustering
+k-means
+
+k-means + HAC
+
+
+
+
+
+import sklearn
+import numpy as np
+from sklearn.cluster import KMeans
+
+estimator_2 = PCA (n_components = 2)
+X_pca2 = estimator_2.fit_transform(datas)
+
+estimator_3 = PCA (n_components = 3)
+X_pca3 = estimator_3.fit_transform(datas)
+
+print(estimator_2.explained_variance_ratio_)
+print("estimator 3: ",estimator_3.explained_variance_ratio_)
+
+square=[]
+for i in range (1,50):
+  kmeans = KMeans(n_clusters=i, max_iter=100)
+  kmeans.fit(datas_general)
+  square.append(kmeans.inertia_)
+plt.plot(range(1,50),square)
+plt.xlabel('Number of Clusters')
+plt.ylabel('Score')
+plt.title('Elbow Curve')
+plt.show()
+   
+
+square=[]
+for i in range (1,25):
+  kmeans = KMeans(n_clusters=i, max_iter=10)
+  kmeans.fit(datas_general)
+  square.append(kmeans.inertia_)
+plt.plot(range(1,25),square)
+plt.xlabel('Number of Clusters')
+plt.ylabel('Score')
+plt.title('Elbow Curve')
+plt.show()
+
+
+
+estimator_5 = PCA (n_components = 5)
+X_pca5 = estimator_5.fit_transform(datas_general_min)
+
+print("estimator 5: ",estimator_5.explained_variance_ratio_)
+
+from sklearn.decomposition import PCA
+pca_datas=panda_reader.DataFrame(data=X_pca5, columns=['1','2','3','4','5'])
+#pca_graphic=panda_reader.concat(pca_datas,df_red,axis=11)
+pca_datas
+
+
+figure=plt.figure(figsize=(15,15))
+aux=figure.add_subplot(1,1,1)
+aux.set_xlabel('Values')
+aux.set_ylabel('Elements')
+aux.set_title('K-clustering')
+
+colour=np.array(["red","green","yellow","orange","black","blue","pink","purple"])
+#aux.scatter(x=pca_datas,y=pca_datas,c=colour,s=1)
+#plt.show()
+
+#The varianze is used to study the value of the agrupation of taking 5 as clustering in this method
+exp_var_cumul = np.cumsum(estimator_5.explained_variance_ratio_)
+
+px.line(
+    x=range(1, exp_var_cumul.shape[0] + 1),
+    y=exp_var_cumul,
+    labels={"x": "# Components", "y": "Explained Variance"}
+)
+print("the number of clusters is:")
+
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sb
+from sklearn.cluster import KMeans
+from sklearn.metrics import pairwise_distances_argmin_min
+
+import matplotlib.pyplot as plt
+numbers = np.arange(len(X_pca5))
+fig, ax = plt.subplots()
+for i in range(len(X_pca5)):
+    plt.text(X_pca5[i][0], X_pca5[i][1],'.') 
+plt.xlim(-1, 2)
+plt.ylim(-0.5, 1)
+ax.grid(True)
+fig.tight_layout()
+plt.show()
+
+
+
+import sklearn.neighbors
+dist = sklearn.neighbors.DistanceMetric.get_metric('euclidean')
+matsim = dist.pairwise(datas_general_min)
+
+from scipy import cluster
+clusters = cluster.hierarchy.linkage(matsim, method = 'ward')
+cluster.hierarchy.dendrogram(clusters, color_threshold=10)
+plt.show()
+
+# The value of varianze took it was very high so is better to be focus in reduced those
+from sklearn import preprocessing 
+
+
+
+
+cut = 30
+labels = cluster.hierarchy.fcluster(clusters, cut , criterion = 'distance')
+print ('Number of clusters %d' % (len(set(labels))))
+#With a 11 features to measure, I chose 11 to compare those wuth the quality that is clearly the output, as I
+# chose ward to reduce the the varianze I had to chosen a high cut to take a decent number of clusters., if not would be too much
+#As is normal if we increase cut less cluster we take it. In this situation are a lot of elemetns to consider
+#
+
+7. Analysis/Interpretation of the Results
+
+In a fast look is possible to see the different wines have a 0 values and some values are interconnected between them, fixed acidity, density, and chlorides wirth the different elements but ph , at the same time ph is very relation with alcohol and volatil acidity, alcohol is other feature very relation with other except density
+In general, they are relation among them
+
+Using the normalization with minimun values, I conseider a bunch of datas more benefits than other ways lik z-scores
+
+A good way to group the data is in groups of 5 to 7, I chose 5 because I consider more importatn to have more data to avoid a lose of data could be problematic, and the values of the normaliaztion were betwwen 0 -1, so this indicate the process was correct. However, in this case the number of data is too big so is possible that 7 could be a better option, and in some moments the value of the normalziation were not very clearly
+
+Other results, observed if the components grow up the datas could be consider as not good in this case is better to ahve less components to study and reduce the variance
+The difference of clustering among the algortihms are very high, HAC gave more cluster that the other, this is because was more focus un minimuzes the varianze
